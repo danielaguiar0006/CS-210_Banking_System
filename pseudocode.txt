@@ -1,0 +1,112 @@
+// Pseudocode for Airgead Banking App
+
+CLASS BankingApp
+   PRIVATE INITIAL FIELDS:
+      initialInvestment, monthlyDeposit, annualInterestPercent, numberOfYears
+
+   CONSTRUCTOR()
+      SET initialInvestment = 0
+      SET monthlyDeposit = 0
+      SET annualInterestPercent = 0
+      SET numberOfYears = 0
+
+   METHOD DisplayReport()
+      DISPLAY "********************************************************"
+      DISPLAY "********************** Data Input **********************"
+      DISPLAY "Initial Investment Amount: {initialInvestment}"
+      DISPLAY "Monthly Deposit: {monthlyDeposit}"
+      DISPLAY "Annual Interest: {annualInterestPercent}"
+      DISPLAY "Number of years: {numberOfYears}"
+      DISPLAY "Press any key to continue..."
+
+      WAIT_FOR_USER_INPUT
+   END FUNCTION
+
+   METHOD GetUserInput()
+      PROMPT "Enter Initial Investment Amount (a positive real number): "
+      READ this.initialInvestment
+      PROMPT "Enter Monthly Deposit Amount (a positive real number): "
+      READ this.monthlyDeposit
+      PROMPT "Enter Annual Interest Rate (as a percentage): "
+      READ this.annualInterestPercent
+      PROMPT "Enter Number of Years for Investment to Grow: "
+      READ this.numberOfYears
+      DISPLAY "Press any key to continue..."
+      WAIT_FOR_USER_INPUT
+
+   METHOD DisplayStaticReports()
+      Declare yearEndBalance, yearEndInterest
+
+      // First without monthly deposits
+      DISPLAY "Balance and Interest Without Additional Monthly Deposits"
+      DISPLAY "========================================================"
+      DISPLAY "Year          Year End Balance         Year End Interest"
+      DISPLAY "--------------------------------------------------------"
+      FOR year = 1 TO numberOfYears
+         CALCULATE yearEndBalance = CalculationEngine.CalculateYearEndBalance(initialInvestment, 0, annualInterestPercent, year)
+         CALCULATE yearEndInterest =  CalculationEngine.CalculateYearEndInterest(initialInvestment, 0, annualInterestPercent, year)
+         DISPLAY "{year}          {yearEndBalance}         {yearEndInterest}"
+      NEXT
+      
+      // Then with monthly deposits
+      DISPLAY "Balance and Interest With Additional Monthly Deposits"
+      DISPLAY "========================================================"
+      DISPLAY "Year          Year End Balance         Year End Interest"
+      DISPLAY "--------------------------------------------------------"
+      FOR year = 1 TO numberOfYears
+         CALCULATE yearEndBalance = CalculationEngine.CalculateYearEndBalance(initialInvestment, monthlyDeposit, annualInterestPercent, year)
+         CALCULATE yearEndInterest = CalculationEngine.CalculateYearEndInterest(initialInvestment, monthlyDeposit, annualInterestPercent, year)
+         DISPLAY "{year}          {yearEndBalance}         {yearEndInterest}"
+      NEXT
+
+   METHOD PromptForRecalculation()
+      REPEAT 
+         PROMPT "Would you like to test different values? (Y/N): "
+         READ userResponse
+         IF userResponse = "Y" THEN
+            CALL this.GetUserInput()
+            CALL this.DisplayReport() with user data
+            CALL this.DisplayStaticReports()
+            Call this.PromptForRecalculation()
+         END IF
+      UNTIL userResponse = "N"
+END CLASS
+
+CLASS CalculationEngine
+   STATIC METHOD CalculateYearEndBalance(initialInvestment, monthlyDeposit, annualInterestPercent, years)
+      SET annualInterest = annualInterestPercent / 100
+      SET totalBalance = initialInvestment * (1 + annualInterest / 12)^(12 * years)
+      SET monthlyContribution = monthlyDeposit * (((1 + annualInterest / 12)^(12 * years) - 1) / (annualInterest / 12))
+      RETURN totalBalance + monthlyContribution
+
+   STATIC METHOD CalculateYearEndInterest(initialInvestment, monthlyDeposit, annualInterestPercent, years)
+      // Calculate the balance at the end of the previous year
+      SET prevYearBalance = CalculateYearEndBalance(initialInvestment, monthlyDeposit, annualInterestPercent, years - 1)
+      // Calculate the current year end balance
+      SET currentYearEndBalance = CalculateYearEndBalance(initialInvestment, monthlyDeposit, annualInterestPercent, years)
+      // Interest earned in the current year is the difference between the current and previous year balances,
+      // minus the deposits made during the year (12 months of deposits)
+      SET interestEarnedThisYear = currentYearEndBalance - prevYearBalance - (monthlyDeposit * 12)
+      RETURN interestEarnedThisYear
+END CLASS
+
+
+
+// Main Execution
+CREATE an instance of BankingApp
+
+// Step 1: Display Report Screen with empty data
+DISPLAY "Welcome to the Airgead Banking Investment Calculator!"
+CALL bankingAppInstance.DisplayReport() with empty data
+
+// Step 2: Get User Input
+CALL bankingAppInstance.GetUserInput()
+
+// Step 3: Display Report Screen with User Input
+CALL bankingAppInstance.DisplayReport() with user data
+
+// Step 4: Display Static Reports
+CALL bankingAppInstance.DisplayStaticReports()
+
+// Step 5: Allow User to Test Different Values
+CALL bankingAppInstance.PromptForRecalculation()
